@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f5f3ee">
+<title>רשימת הקניות של אייל</title>
+<style>
+:root{--ink:#20251f;--muted:#778078;--line:#e8e9e2;--paper:#fff;--bg:#f5f6f1;--green:#286348;--pale:#eaf3ed;--red:#b84b43}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,"Heebo",sans-serif}
+main{max-width:760px;margin:auto;padding:26px 18px 50px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.brand{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:.3px}
+h1{font-size:30px;margin:6px 0 4px;letter-spacing:-.8px}
+.sub{color:var(--muted);font-size:14px}
+.pill{background:var(--pale);color:var(--green);padding:9px 13px;border-radius:30px;font-size:13px;font-weight:700}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:15px;padding:14px}
+.stat strong{display:block;font-size:22px}.stat span{font-size:12px;color:var(--muted)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+button{font:inherit;cursor:pointer;border:0}
+.action{border-radius:11px;padding:11px 14px;font-weight:700;background:#e9eee8;color:#315b43}
+.action.primary{background:var(--green);color:white}.action.light{background:white;border:1px solid var(--line);color:#555}
+.action.danger{color:var(--red);background:#fff0ee}
+.add{background:white;border:1px solid var(--line);border-radius:16px;padding:15px;margin:16px 0 20px}
+.add h2{font-size:16px;margin:0 0 12px}
+.addrow{display:flex;gap:8px}.addrow input,.addrow select{min-width:0;border:1px solid #dfe3dc;border-radius:10px;padding:12px;font-size:15px;background:#fff}
+.addrow input{flex:1}.addrow select{max-width:145px}
+.category{background:white;border:1px solid var(--line);border-radius:16px;margin:12px 0;overflow:hidden}
+.cathead{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#fbfcf9}
+.catname{font-size:16px;font-weight:800}.catcount{font-size:12px;color:var(--muted)}
+.item{display:flex;align-items:center;gap:11px;padding:11px 14px;border-top:1px solid #f0f1ec;min-height:54px}
+.item.done .name{text-decoration:line-through;color:#9aa19a}
+.tick{width:22px;height:22px;accent-color:var(--green);flex:none}
+.name{flex:1;font-size:15px}.qty{display:flex;align-items:center;gap:8px}
+.qty button{width:28px;height:28px;border-radius:8px;background:#f0f3ee;color:#355e45;font-size:18px}
+.qty b{min-width:16px;text-align:center;font-size:14px}
+.del{background:transparent;color:#a5aaa3;font-size:21px;padding:2px 5px;line-height:1}
+.del:hover{color:var(--red)}
+.empty{text-align:center;padding:38px 15px;color:var(--muted);background:white;border-radius:15px}
+footer{text-align:center;color:#929990;font-size:12px;margin-top:25px}
+@media(max-width:520px){main{padding:20px 12px 35px}h1{font-size:25px}.summary{gap:7px}.stat{padding:11px}.stat strong{font-size:19px}.addrow{flex-wrap:wrap}.addrow input{flex-basis:100%}.addrow select{flex:1;max-width:none}.action{padding:10px 11px}}
+</style></head>
+<body><main>
+<header><div><div class="brand">EYAL NOVO · HOME</div><h1>🛒 רשימת הקניות שלי</h1><div class="sub">כל מה שצריך לבית, במקום אחד</div></div><div class="pill" id="saved">נשמר אוטומטית ✓</div></header>
+<section class="summary"><div class="stat"><strong id="total">0</strong><span>מוצרים ברשימה</span></div><div class="stat"><strong id="bought">0</strong><span>כבר נקנו</span></div><div class="stat"><strong id="left">0</strong><span>עוד נשארו</span></div></section>
+<div class="toolbar"><button class="action primary" id="share">שתף בוואטסאפ ↗</button><button class="action light" id="filter">הצג רק מה שחסר</button><button class="action danger" id="clear">אפס כמויות</button></div>
+<section class="add"><h2>＋ הוספת מוצר לרשימה</h2><div class="addrow"><input id="newName" placeholder="לדוגמה: קפה, אורז, סבון..." maxlength="60"><select id="newCat" aria-label="קטגוריה"></select><button class="action primary" id="addBtn">הוסף מוצר</button></div></section>
+<div id="list"></div><footer>הנתונים נשמרים אוטומטית במכשיר ובדפדפן שבו פתחת את הרשימה.</footer>
+</main>
+<script>
+const categories=[
+{name:"🥬 ירקות ופירות",items:["עגבניות","מלפפונים","פלפל אדום","בצל","תפוחי אדמה","גזר","חסה","אבוקדו","בננות","תפוחים","לימונים"]},
+{name:"🥛 מוצרי חלב וביצים",items:["חלב","גבינה צהובה","קוטג׳","גבינה לבנה","יוגורט","שמנת מתוקה","חמאה","ביצים"]},
+{name:"🥖 לחמים ומאפים",items:["לחם","פיתות","לחמניות","טורטיות"]},
+{name:"🍗 בשר, דגים וקפואים",items:["חזה עוף","בשר טחון","שניצלים","דג","צ׳יפס קפוא","ירקות קפואים"]},
+{name:"🥫 מזווה ומוצרי יסוד",items:["אורז","פסטה","פתיתים","קוסקוס","שמן זית","שמן","קמח","סוכר","מלח","קפה","תה","טונה","רסק עגבניות"]},
+{name:"🍪 חטיפים ומתוקים",items:["שוקולד","עוגיות","ביסקוויטים","חטיפים","גלידה","קורנפלקס"]},
+{name:"🧼 ניקיון וטואלטיקה",items:["נייר טואלט","נייר מגבת","סבון כלים","אבקת כביסה","מרכך כביסה","שמפו","מרכך שיער","משחת שיניים","סבון ידיים","שקיות אשפה"]},
+{name:"🧃 שתייה",items:["מים","סודה","מיץ","שתייה קלה"]}
+];
+const KEY="eyal-shopping-list-v1";
+let state=load(),onlyMissing=false;
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{items:[]}}catch{return{items:[]}}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));document.getElementById("saved").textContent="נשמר אוטומטית ✓"}
+function allItems(){const base=categories.flatMap((c,ci)=>c.items.map((n,i)=>({id:"b"+ci+"_"+i,name:n,cat:ci,custom:false})));return base.concat(state.items)}
+function ensure(id){let x=state.items.find(x=>x.id===id);if(!x){const m=id.match(/^b(\d+)_(\d+)$/);if(m){const ci=+m[1],i=+m[2];x={id,name:categories[ci].items[i],cat:ci,custom:false};state.items.push(x)}}return x}
+function render(){
+ const all=allItems(),active=all.filter(x=>(state[x.id]?.qty||0)>0),bought=all.filter(x=>state[x.id]?.done&&state[x.id]?.qty>0).length;
+ document.getElementById("total").textContent=active.length;document.getElementById("bought").textContent=bought;document.getElementById("left").textContent=active.length-bought;
+ const root=document.getElementById("list");root.innerHTML="";
+ let shown=0;
+ categories.forEach((c,ci)=>{const rows=all.filter(x=>x.cat===ci&&(!onlyMissing?(state[x.id]?.qty||0)>0:((state[x.id]?.qty||0)>0&&!state[x.id]?.done)));if(!rows.length)return;shown+=rows.length;
+ const section=document.createElement("section");section.className="category";const head=document.createElement("div");head.className="cathead";head.innerHTML='<span class="catname"></span><span class="catcount"></span>';head.querySelector(".catname").textContent=c.name;head.querySelector(".catcount").textContent=rows.length+" מוצרים";section.append(head);
+ rows.forEach(x=>section.append(makeRow(x)));root.append(section);
+ });
+ const custom=all.filter(x=>x.cat>=categories.length&&(!onlyMissing?(state[x.id]?.qty||0)>0:((state[x.id]?.qty||0)>0&&!state[x.id]?.done)));
+ if(custom.length){const section=document.createElement("section");section.className="category";const h=document.createElement("div");h.className="cathead";h.innerHTML='<span class="catname">✨ מוצרים שהוספתי</span>';section.append(h);custom.forEach(x=>section.append(makeRow(x)));root.append(section);shown+=custom.length}
+ if(!shown)root.innerHTML='<div class="empty">'+(onlyMissing?"אין מוצרים חסרים כרגע 🎉":"הרשימה ריקה. הוסף מוצרים כדי להתחיל.")+'</div>';
+}
+function makeRow(x){const d=state[x.id]||{qty:0,done:false};const row=document.createElement("div");row.className="item"+(d.done?" done":"");
+ const check=document.createElement("input");check.type="checkbox";check.className="tick";check.checked=!!d.done;check.setAttribute("aria-label","סמן כמוצר שנקנה");check.onchange=()=>{state[x.id]={...d,qty:d.qty||1,done:check.checked};save();render()};
+ const name=document.createElement("span");name.className="name";name.textContent=x.name;
+ const qty=document.createElement("div");qty.className="qty";const minus=document.createElement("button");minus.textContent="−";minus.onclick=()=>changeQty(x.id,-1);const num=document.createElement("b");num.textContent=d.qty||0;const plus=document.createElement("button");plus.textContent="+";plus.onclick=()=>changeQty(x.id,1);qty.append(minus,num,plus);
+ const del=document.createElement("button");del.className="del";del.textContent="×";del.title="מחק מוצר מהרשימה";del.setAttribute("aria-label","מחק "+x.name);del.onclick=()=>{if(!confirm('למחוק את "'+x.name+'" מהרשימה?'))return;if(x.custom)state.items=state.items.filter(y=>y.id!==x.id);delete state[x.id];save();render()};
+ row.append(check,name,qty,del);return row}
+function changeQty(id,delta){const old=state[id]||{qty:0,done:false};const qty=Math.max(0,(old.qty||0)+delta);state[id]={...old,qty,done:qty===0?false:old.done};save();render()}
+document.getElementById("newCat").innerHTML=categories.map((c,i)=>'<option value="'+i+'">'+c.name+'</option>').join("");
+function add(){const input=document.getElementById("newName"),name=input.value.trim();if(!name){input.focus();return}const cat=+document.getElementById("newCat").value;const exists=allItems().some(x=>x.name.toLowerCase()===name.toLowerCase()&&(state[x.id]?.qty||0)>0);if(exists){alert("המוצר כבר נמצא ברשימה");return}const id="c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);state.items.push({id,name,cat,custom:true});state[id]={qty:1,done:false};input.value="";save();render()}
+document.getElementById("addBtn").onclick=add;document.getElementById("newName").addEventListener("keydown",e=>{if(e.key==="Enter")add()});
+document.getElementById("filter").onclick=e=>{onlyMissing=!onlyMissing;e.currentTarget.textContent=onlyMissing?"הצג את כל הרשימה":"הצג רק מה שחסר";render()};
+document.getElementById("clear").onclick=()=>{if(!confirm("לאפס את כל הכמויות ולרוקן את הרשימה?"))return;allItems().forEach(x=>delete state[x.id]);save();render()};
+document.getElementById("share").onclick=()=>{const lines=allItems().filter(x=>(state[x.id]?.qty||0)>0).map(x=>(state[x.id].done?"✓ ":"☐ ")+x.name+" × "+state[x.id].qty);const msg="🛒 רשימת הקניות שלי\n"+(lines.length?lines.join("\n"):"הרשימה ריקה");window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank")};
+render();
+</script></body></html>
